@@ -1,0 +1,67 @@
+Option Explicit
+
+Sub ExportChartsToPowerPoint()
+
+    Dim filePath As String
+    Dim pptPath As String
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim ch As ChartObject
+    Dim pptApp As Object
+    Dim pptPres As Object
+    Dim pptSlide As Object
+    Dim slideIndex As Integer
+    Dim chartIndex As Integer
+    
+    ' Set the file paths
+    filePath = "C:\ChartEmailer\ModelRefreshandEmailer.xlsm"
+    pptPath = "C:\ChartEmailer\Charts.pptx"
+    
+    ' Open the workbook in read-only mode
+    Set wb = Workbooks.Open(filePath, ReadOnly:=True)
+    
+    ' Refresh all data
+    Application.DisplayAlerts = False
+    wb.RefreshAll
+    Application.Wait (Now + TimeValue("0:00:10"))
+    wb.Save
+    Application.DisplayAlerts = True
+    
+    ' Open PowerPoint and create a new presentation
+    Set pptApp = CreateObject("PowerPoint.Application")
+    Set pptPres = pptApp.Presentations.Add
+    
+    ' Loop through each chart in each worksheet and add it to a new slide
+    slideIndex = 1
+    chartIndex = 1
+    For Each ws In wb.Worksheets
+        For Each ch In ws.ChartObjects
+            ' Add a new slide and paste the chart
+            Set pptSlide = pptPres.Slides.Add(slideIndex, 12) ' 12 = ppLayoutBlank
+            ch.Chart.Export Environ("Temp") & "\temp.png"
+            pptSlide.Shapes.AddPicture Environ("Temp") & "\temp.png", False, True, 50, 50, 600, 400
+            
+            ' Add title and source
+            pptSlide.Shapes.AddTextbox(msoTextOrientationHorizontal, 30, 30, 540, 50).TextFrame.TextRange.Text = ws.Name & " - " & ch.Name
+            pptSlide.Shapes.AddTextbox(msoTextOrientationHorizontal, 30, 550, 540, 30).TextFrame.TextRange.Text = "Source: " & wb.Name
+            
+            ' Move to the next slide
+            slideIndex = slideIndex + 1
+            chartIndex = chartIndex + 1
+        Next ch
+    Next ws
+    
+    ' Save the PowerPoint file
+    pptPres.SaveAs pptPath
+    
+    ' Clean up
+    pptPres.Close
+    pptApp.Quit
+    Set pptSlide = Nothing
+    Set pptPres = Nothing
+    Set pptApp = Nothing
+    Set ch = Nothing
+    Set ws = Nothing
+    Set wb = Nothing
+
+End Sub
