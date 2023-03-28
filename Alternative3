@@ -1,0 +1,77 @@
+ Sub ExportChartsToEmail()
+ Const olMailItem As Long = 0
+
+ Dim filePath As String
+ Dim wb As Workbook
+ Dim ws As Worksheet
+ Dim ch As ChartObject
+ Dim OutlookApp As Object
+ Dim OutlookMail As Object
+ Dim EmailBody As String
+ Dim IsOutlookRunning As Boolean
+ Dim tempFile As String
+
+ ' set the file path
+ filePath = "C:\ChartEmailer\ModelRefreshandEmailer.xlsm"
+
+ ' check if outlook is already running
+ On Error Resume Next
+ Set OutlookApp = GetObject(, "Outlook.Application")
+ IsOutlookRunning = Not OutlookApp Is Nothing
+ If Not IsOutlookRunning Then
+     Set OutlookApp = CreateObject("Outlook.Application")
+ End If
+ On Error GoTo 0
+
+ ' create a new email
+ Set OutlookMail = OutlookApp.CreateItem(olMailItem)
+
+ ' set email properties
+ With OutlookMail
+     .To = "nburhance@gmail.com"
+     .Subject = "Updated Charts"
+ End With
+
+ ' open the workbook
+ Set wb = Workbooks.Open(filePath, ReadOnly:=True)
+
+ ' Refresh all data
+ Application.DisplayAlerts = False
+ wb.RefreshAll
+ Application.DisplayAlerts = True
+ ' Wait for data to refresh
+ Application.Wait (Now + TimeValue("0:00:05"))
+
+ ' Start building the email body
+ EmailBody = "<html><body>"
+
+ ' loop through each chart in each worksheet
+ For Each ws In wb.Worksheets
+     For Each ch In ws.ChartObjects
+         ' copy chart as a picture and paste into email body
+         tempFile = Environ("Temp") & "\temp" & ch.Name & ".png"
+         ch.Chart.Export tempFile
+         EmailBody = EmailBody & "<p><strong>" & ws.Name & " - " & ch.Name & "</strong></p>"
+         EmailBody = EmailBody & "<img src='cid:temp" & ch.Name & ".png'><br>"
+         EmailBody = EmailBody & "<p><em>Source: " & ws.Name & " - " & ch.Name & "</em></p>"
+         OutlookMail.Attachments.Add tempFile, olByValue, 0
+     Next ch
+ Next ws
+
+ ' Add the email body to the email
+ OutlookMail.HTMLBody = EmailBody
+
+ ' send the email
+ If IsOutlookRunning Then
+     OutlookMail.Display
+ Else
+     OutlookMail.Send
+ End If
+
+ ' clean up
+ Set OutlookMail = Nothing
+ Set OutlookApp = Nothing
+ Set ch = Nothing
+ Set ws = Nothing
+ Set wb = Nothing
+End Sub
