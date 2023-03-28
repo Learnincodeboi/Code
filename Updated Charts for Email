@@ -1,0 +1,73 @@
+Sub ExportChartsToEmail()
+    
+    Dim filePath As String
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim ch As ChartObject
+    Dim OutlookApp As Object
+    Dim OutlookMail As Object
+    Dim EmailBody As String
+    Dim IsOutlookRunning As Boolean
+    
+    ' set the file path
+    filePath = "C:\ChartEmailer\ModelRefreshandEmailer.xlsm"
+    
+    ' check if outlook is already running
+    On Error Resume Next
+    Set OutlookApp = GetObject(, "Outlook.Application")
+    IsOutlookRunning = Not OutlookApp Is Nothing
+    If Not IsOutlookRunning Then
+        Set OutlookApp = CreateObject("Outlook.Application")
+    End If
+    On Error GoTo 0
+    
+    ' create a new email
+    Set OutlookMail = OutlookApp.CreateItem(olMailItem)
+    
+    ' set email properties
+    With OutlookMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Updated Charts"
+    End With
+    
+    ' Start building the email body
+    EmailBody = "<html><body>"
+    
+    ' open the workbook
+    Set wb = Workbooks.Open(filePath, ReadOnly:=True)
+    
+    ' Refresh all data
+    Application.DisplayAlerts = False
+    wb.RefreshAll
+    Application.Wait (Now + TimeValue("0:00:10"))
+    Application.DisplayAlerts = True
+    
+    ' loop through each chart in each worksheet
+    For Each ws In wb.Worksheets
+        For Each ch In ws.ChartObjects
+            ' copy chart as a picture and paste into email body
+            ch.Chart.Export Environ("Temp") & "\temp.png"
+            EmailBody = EmailBody & "<p><strong>" & ws.Name & " - " & ch.Name & "</strong></p>"
+            EmailBody = EmailBody & "<p><em>" & ch.Chart.ChartTitle.Caption & "</em></p>"
+            EmailBody = EmailBody & "<img src='cid:temp.png'><br>"
+            EmailBody = EmailBody & "<p><em>Source: " & ws.Name & " - " & ch.Name & "</em></p>"
+            OutlookMail.Attachments.Add Environ("Temp") & "\temp.png", olByValue, 0
+            OutlookMail.HTMLBody = EmailBody
+        Next ch
+    Next ws
+    
+    ' send the email
+    If IsOutlookRunning Then
+        OutlookMail.Display
+    Else
+        OutlookMail.Send
+    End If
+    
+    ' clean up
+    Set OutlookMail = Nothing
+    Set OutlookApp = Nothing
+    Set ch = Nothing
+    Set ws = Nothing
+    Set wb = Nothing
+    
+End Sub
