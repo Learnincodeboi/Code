@@ -1,0 +1,73 @@
+Option Explicit
+
+Sub RefreshDataAndSendEmail()
+    Dim fileNames() As String
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim ch As Chart
+    Dim OutlookApp As Object
+    Dim OutlookMail As Object
+    Dim EmailBody As String
+    Dim i As Long
+    
+    ' List of Excel files to process
+    fileNames = Array("C:\path\to\file1.xlsx", "C:\path\to\file2.xlsx")
+    
+    ' Create Outlook objects
+    Set OutlookApp = CreateObject("Outlook.Application")
+    Set OutlookMail = OutlookApp.CreateItem(0)
+    
+    ' Start building the email body
+    EmailBody = "<html><body>"
+    
+    ' Loop through each file
+    For i = LBound(fileNames) To UBound(fileNames)
+        ' Open the workbook
+        Set wb = Workbooks.Open(fileNames(i))
+        
+        ' Refresh Bloomberg data
+        Application.DisplayAlerts = False
+        wb.RefreshAll
+        wb.Save
+        Application.DisplayAlerts = True
+        
+        ' Loop
+        ' Loop through each worksheet in the workbook
+        For Each ws In wb.Worksheets
+            ' Loop through each chart in the worksheet
+            For Each ch In ws.ChartObjects
+                ' Copy the chart as a picture
+                ch.CopyPicture xlScreen, xlBitmap
+                
+                ' Paste the chart into the email
+                With OutlookMail
+                    .HTMLBody = .HTMLBody & "<p><strong>" & ws.Name & " - " & ch.Name & "</strong></p>"
+                    .GetInspector.WordEditor.Application.Selection.Paste
+                End With
+            Next ch
+        Next ws
+        
+        ' Close the workbook
+        wb.Close SaveChanges:=False
+    Next i
+    
+    ' Finalize the email body
+    EmailBody = EmailBody & "</body></html>"
+    
+    ' Configure and send the email
+    With OutlookMail
+        .To = "recipient@example.com"
+        .CC = ""
+        .BCC = ""
+        .Subject = "Updated Charts"
+        .HTMLBody = EmailBody
+        .Send
+    End With
+    
+    ' Clean up
+    Set OutlookMail = Nothing
+    Set OutlookApp = Nothing
+    Set ch = Nothing
+    Set ws = Nothing
+    Set wb = Nothing
+End Sub
