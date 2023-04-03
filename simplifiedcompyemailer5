@@ -1,0 +1,72 @@
+Sub SendEmailWithScreenshots()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim TempFilePath As String
+    Dim TempFileName As String
+    Dim FullTempFilePath As String
+    Dim Wb As Workbook
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+
+    ' Create a temporary file to store the print view
+    Set Wb = ActiveWorkbook
+    TempFilePath = Environ$("temp") & "\"
+    TempFileName = "PrintView.pdf"
+    FullTempFilePath = TempFilePath & TempFileName
+
+    ' Set the print area to the first range and format the PDF in landscape mode
+    Set ws = ActiveSheet
+    With ws.PageSetup
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = 1
+        .Orientation = xlLandscape
+        .PrintArea = "G10:X55"
+    End With
+    Wb.ExportAsFixedFormat Type:=xlTypePDF, _
+        Filename:=FullTempFilePath, _
+        Quality:=xlQualityStandard, _
+        IncludeDocProperties:=True, _
+        IgnorePrintAreas:=False, _
+        OpenAfterPublish:=False
+
+    ' Get a screenshot of the first range
+    Set rng1 = ws.Range("G10:X55")
+    rng1.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+
+    ' Set the print area to the second range and format the PDF in landscape mode
+    With ws.PageSetup
+        .PrintArea = "G56:X98"
+    End With
+    Wb.ExportAsFixedFormat Type:=xlTypePDF, _
+        Filename:=FullTempFilePath, _
+        Quality:=xlQualityStandard, _
+        IncludeDocProperties:=True, _
+        IgnorePrintAreas:=False, _
+        OpenAfterPublish:=False
+
+    ' Get a screenshot of the second range
+    Set rng2 = ws.Range("G56:X98")
+    rng2.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Add the PDF file and screenshots as attachments
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add FullTempFilePath
+        .Attachments.Add rng1
+        .Attachments.Add rng2
+        .Display
+    End With
+
+    ' Clean up the temporary file
+    Kill FullTempFilePath
+    Set Wb = Nothing
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+End Sub
