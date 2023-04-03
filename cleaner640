@@ -1,0 +1,179 @@
+Option Explicit
+
+Sub SendEmailWithScreenshots()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim TempFilePath As String
+    Dim TempFileName As String
+    Dim FullTempFilePath As String
+    Dim Wb As Workbook
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+    Dim PPT As Object
+    Dim PPTPresentation As Object
+    Dim PPTSlide As Object
+
+    ' Update BQL formulas
+    On Error Resume Next
+    Application.Run "RefreshAllBQLQueries"
+    On Error GoTo 0
+
+    ' Create a temporary file to store the print view
+    Set Wb = ActiveWorkbook
+    TempFilePath = Environ$("temp") & "\"
+    TempFileName = "PrintView.pdf"
+    FullTempFilePath = TempFilePath & TempFileName
+
+    ' Set the print area to the first range and format the PDF in landscape mode
+    Set ws = ActiveSheet
+    With ws.PageSetup
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = 1
+        .Orientation = xlLandscape
+        .PrintArea = "G10:X55"
+    End With
+
+    ' Create a new PowerPoint presentation and add the first range to the first slide
+    Set PPT = CreateObject("PowerPoint.Application")
+    Set PPTPresentation = PPT.Presentations.Add
+    Set PPTSlide = PPTPresentation.Slides.Add(1, 11)
+    Set rng1 = ws.Range("G10:X55")
+    rng1.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    PPTSlide.Shapes.PasteSpecial DataType:=2, Link:=False
+    PPTSlide.Shapes(1).Width = PPTSlide.Shapes(1).Width * 0.75
+    PPTSlide.Shapes(1).Height = PPTSlide.Shapes(1).Height * 0.75
+
+    ' Set the print area to the second range and format the PDF in landscape mode
+    With ws.PageSetup
+        .PrintArea = "G56:X98"
+    End With
+
+    ' Add the second range to a new slide in the PowerPoint presentation
+    Set PPTSlide = PPTPresentation.Slides.Add(2, 11)
+    Set rng2 = ws.Range("G56:X98")
+    rng2.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    PPTSlide.Shapes.PasteSpecial DataType:=2, Link:=False
+    PPTSlide.Shapes(1).Width = PPTSlide.Shapes(1).Width * 0.75
+    PPTSlide.Shapes(1).Height = PPTSlide.Shapes(1).Height * 0.75
+
+    ' Save the PowerPoint presentation as a PDF
+    PPTPresentation.SaveAs FullTempFilePath, 32
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Add the PDF file and screenshots as attachments
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add FullTempFilePath
+        .Display
+        .HTMLBody = "<p>Please find the latest comp sheet updated for today.</p>" & _
+                    "<p>Range 1:</p>" & rng1.Address & _
+                    "<p>Range 2:</p>" & rng2.Address & _
+                    .HTMLBody
+    End With
+
+' Clean up
+' Close the PowerPoint presentation and quit PowerPoint
+PPTPresentation.Close
+PPT.Quit
+
+' Close the PowerPoint presentation and quit PowerPoint
+PPTPresentation.Close
+PPT.Quit
+End Sub
+
+Option Explicit
+
+Sub SendEmailWithScreenshots()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim TempFilePath As String
+    Dim TempFileName As String
+    Dim FullTempFilePath As String
+    Dim Wb As Workbook
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+    Dim PPT As Object
+    Dim PPTPresentation As Object
+    Dim PPTSlide As Object
+
+    ' Update BQL formulas
+    On Error Resume Next
+    Application.Run "RefreshAllBQLQueries"
+    On Error GoTo 0
+
+    ' Create a temporary file to store the print view
+    Set Wb = ActiveWorkbook
+    TempFilePath = Environ$("temp") & "\"
+    TempFileName = "PrintView.pdf"
+    FullTempFilePath = TempFilePath & TempFileName
+
+    ' Set the print area to the first range and format the PDF in landscape mode
+    Set ws = ActiveSheet
+    With ws.PageSetup
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = 1
+        .Orientation = xlLandscape
+        .PrintArea = "G10:X55"
+    End With
+
+    ' Create a new PowerPoint presentation and add the first range to the first slide
+    Set PPT = CreateObject("PowerPoint.Application")
+    Set PPTPresentation = PPT.Presentations.Add
+    Set PPTSlide = PPTPresentation.Slides.Add(1, 11)
+    Set rng1 = ws.Range("G10:X55")
+    rng1.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    PPTSlide.Shapes.PasteSpecial DataType:=2, Link:=False
+    PPTSlide.Shapes(1).Width = PPTSlide.Shapes(1).Width * 0.75
+    PPTSlide.Shapes(1).Height = PPTSlide.Shapes(1).Height * 0.75
+
+    ' Set the print area to the second range and format the PDF in landscape mode
+    With ws.PageSetup
+        .PrintArea = "G56:X98"
+    End With
+
+    ' Add the second range to a new slide in the PowerPoint presentation
+    Set PPTSlide = PPTPresentation.Slides.Add(2, 11)
+    Set rng2 = ws.Range("G56:X98")
+    rng2.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    PPTSlide.Shapes.PasteSpecial DataType:=2, Link:=False
+    PPTSlide.Shapes(1).Width = PPTSlide.Shapes(1).Width * 0.75
+    PPTSlide.Shapes(1).Height = PPTSlide.Shapes(1).Height * 0.75
+
+    ' Save the PowerPoint presentation as a PDF
+    PPTPresentation.SaveAs FullTempFilePath, 32
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Add the PDF file and screenshots as attachments
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add FullTempFilePath
+        .Display
+        .HTMLBody = "<p>Please find the latest comp sheet updated for today.</p>" & _
+                    "<p>Range 1:</p>" & rng1.Address & _
+                    "<p>Range 2:</p>" & rng2.Address & _
+                    .HTMLBody
+    End With
+
+   ' Clean up
+' Close the PowerPoint presentation and quit PowerPoint
+PPTPresentation.Close
+PPT.Quit
+
+' Close the PowerPoint presentation and quit PowerPoint
+PPTPresentation.Close
+PPT.Quit
+End Sub
+
+
