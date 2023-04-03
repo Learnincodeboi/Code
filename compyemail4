@@ -1,0 +1,100 @@
+Sub RunAllSubs()
+    On Error Resume Next
+    ThisWorkbook.RefreshAll
+    On Error GoTo 0
+    Call SendPrintViewEmail
+    Call SendPrintViewEmailWithScreenshot1
+    Call SendPrintViewEmailWithScreenshot2
+    Call SendPrintViewEmailWithScreenshot3
+End Sub
+
+Sub SendPrintViewEmail()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim TempFilePath As String
+    Dim TempFileName As String
+    Dim FullTempFilePath As String
+    Dim Wb As Workbook
+
+    ' Create a temporary file to store the print view
+    Set Wb = ActiveWorkbook
+    TempFilePath = Environ$("temp") & "\"
+    TempFileName = "PrintView.pdf"
+    FullTempFilePath = TempFilePath & TempFileName
+    Wb.ExportAsFixedFormat Type:=xlTypePDF, _
+        Filename:=FullTempFilePath, _
+        Quality:=xlQualityStandard, _
+        IncludeDocProperties:=True, _
+        IgnorePrintAreas:=False, _
+        OpenAfterPublish:=False
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Add the PDF file as an attachment
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add FullTempFilePath
+        .Display
+    End With
+
+    ' Clean up the temporary file
+    Kill FullTempFilePath
+    Set Wb = Nothing
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+End Sub
+
+Sub SendPrintViewEmailWithScreenshot1()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim TempFilePath As String
+    Dim TempFileName As String
+    Dim FullTempFilePath As String
+    Dim Wb As Workbook
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+    Dim olInsp As Object
+    Dim olMailItem As Object
+    Dim olInspBody As Object
+    Dim olAttach As Object
+    Dim imgPath As String
+
+    ' Create a temporary file to store the print view
+    Set Wb = ActiveWorkbook
+    TempFilePath = Environ$("temp") & "\"
+    TempFileName = "PrintView1.pdf"
+    FullTempFilePath = TempFilePath & TempFileName
+    Wb.ExportAsFixedFormat Type:=xlTypePDF, _
+        Filename:=FullTempFilePath, _
+        Quality:=xlQualityStandard, _
+        IncludeDocProperties:=True, _
+        IgnorePrintAreas:=False, _
+        OpenAfterPublish:=False
+
+    ' Get screenshots of the specified ranges
+    Set ws = ActiveSheet
+    Set rng1 = ws.Range("G10:X55")
+    Set rng2 = ws.Range("G56:X98")
+    rng1.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+    rng2.CopyPicture Appearance:=xlScreen, Format:=xlPicture
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Add the PDF files as attachments
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add FullTempFilePath
+        .Attachments.Add TempFilePath & "PrintView2.pdf"
+        .Display
+    End With
+
+    ' Get the email body and add the screenshots
+    Set olMailItem = OutApp.ActiveInspector.CurrentItem
+    Set olInsp = ol
