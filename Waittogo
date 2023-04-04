@@ -1,0 +1,4 @@
+Sub DelayByOneMinute()
+    Application.Wait Now + TimeValue("0:01:00")
+    ' Your code here
+End Sub
