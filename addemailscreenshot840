@@ -1,0 +1,14 @@
+Sub ExistingSub()
+    'Existing code goes here
+
+    'Add the screenshots to the email body
+    Dim imgPath As String
+    imgPath = Environ$("temp") & "\RangeG10_X98.png"
+    ws.Range("G10:X98").CopyPicture Appearance:=xlScreen, Format:=xlPNG
+    Set myChart = .GetInspector.WordEditor.Shapes.AddPicture(imgPath, False, True, 0, 0, -1, -1)
+    myChart.Select
+    .GetInspector.WordEditor.Application.Selection.Range(0, 0).InlineShapes(1).Height = 200
+    .GetInspector.WordEditor.Application.Selection.Range(0, 0).InlineShapes(1).Width = 400
+
+    'Existing code continues here
+End Sub
