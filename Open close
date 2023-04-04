@@ -1,0 +1,31 @@
+Sub OpenAndCloseApps()
+    ' Open Excel
+    Dim xlApp As Object
+    Set xlApp = CreateObject("Excel.Application")
+    xlApp.Visible = True
+    AppActivate xlApp.Caption
+    
+    ' Open PowerPoint
+    Dim pptApp As Object
+    Set pptApp = CreateObject("PowerPoint.Application")
+    pptApp.Visible = True
+    AppActivate pptApp.Caption
+    
+    ' Open Outlook
+    Dim olApp As Object
+    Set olApp = CreateObject("Outlook.Application")
+    olApp.Visible = True
+    AppActivate olApp.Caption
+    
+    ' Close Outlook
+    olApp.Quit
+    Set olApp = Nothing
+    
+    ' Close PowerPoint
+    pptApp.Quit
+    Set pptApp = Nothing
+    
+    ' Close Excel
+    xlApp.Quit
+    Set xlApp = Nothing
+End Sub
