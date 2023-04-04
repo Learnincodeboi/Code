@@ -1,0 +1,72 @@
+Sub OpenSaveAndCloseApps()
+' Open Excel
+On Error Resume Next
+Dim xlApp As Object
+Set xlApp = CreateObject("Excel.Application")
+xlApp.Visible = True
+AppActivate xlApp.Caption
+On Error GoTo 0
+' Open PowerPoint
+On Error Resume Next
+Dim pptApp As Object
+Set pptApp = CreateObject("PowerPoint.Application")
+pptApp.Visible = True
+AppActivate pptApp.Caption
+On Error GoTo 0
+
+' Open Outlook
+On Error Resume Next
+Dim olApp As Object
+Set olApp = CreateObject("Outlook.Application")
+olApp.Visible = True
+AppActivate olApp.Caption
+On Error GoTo 0
+
+' Save all open emails in Outlook as drafts
+On Error Resume Next
+Dim olMail As Object
+For Each olMail In olApp.ActiveExplorer.Selection
+    If olMail.Class = olMail Then
+        olMail.Save
+    End If
+Next olMail
+On Error GoTo 0
+
+' Save all open files in Excel to the Downloads folder with a unique file name including the date
+On Error Resume Next
+Dim xlBook As Object
+For Each xlBook In xlApp.Workbooks
+    Dim fileName As String
+    fileName = "Workbook_" & Format(Date, "yyyymmdd") & "_" & Format(Time, "hhmmss") & ".xlsx"
+    xlBook.SaveAs Environ("USERPROFILE") & "\Downloads\" & fileName
+Next xlBook
+On Error GoTo 0
+
+' Save all open files in PowerPoint to the Downloads folder with a unique file name including the date
+On Error Resume Next
+Dim pptPres As Object
+For Each pptPres In pptApp.Presentations
+    Dim fileName As String
+    fileName = "Presentation_" & Format(Date, "yyyymmdd") & "_" & Format(Time, "hhmmss") & ".pptx"
+    pptPres.SaveAs Environ("USERPROFILE") & "\Downloads\" & fileName
+Next pptPres
+On Error GoTo 0
+
+' Close Outlook
+On Error Resume Next
+olApp.Quit
+Set olApp = Nothing
+On Error GoTo 0
+
+' Close PowerPoint
+On Error Resume Next
+pptApp.Quit
+Set pptApp = Nothing
+On Error GoTo 0
+
+' Close Excel
+On Error Resume Next
+xlApp.Quit
+Set xlApp = Nothing
+On Error GoTo 0
+End Sub
