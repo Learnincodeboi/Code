@@ -1,0 +1,91 @@
+Option Explicit
+
+Sub SendEmailWithScreenshots()
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim pdfPath As String
+    Dim ws As Worksheet
+    Dim rng1 As Range
+    Dim rng2 As Range
+
+    ' Update BQL formulas
+    On Error Resume Next
+    Application.Run "RefreshAllBQLQueries"
+    On Error GoTo 0
+
+    ' Set the ranges to be captured
+    Set ws = ActiveSheet
+    Set rng1 = ws.Range("G10:X55")
+    Set rng2 = ws.Range("G56:X98")
+
+    ' Save the ranges as images and create PDF
+    pdfPath = Environ$("temp") & "\Workbook_PrintView.pdf"
+    Call CreatePDFWithImages(rng1, rng2, pdfPath)
+
+    ' Create a new email message
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    ' Attach the PDF to the email
+    With OutMail
+        .To = "nburhance@gmail.com"
+        .Subject = "Print View of Workbook"
+        .Attachments.Add pdfPath
+        .Display
+
+        ' Send the email
+        .Send
+    End With
+
+End Sub
+
+Sub RangeToImage(rng As Range, imgPath As String)
+    Dim chrt As Chart
+
+    ' Create a temporary chart with the same size as the range
+    Set chrt = Charts.Add
+    With chrt
+        .Name = "TempChart"
+        .SetSourceData rng
+        .ChartArea.Width = rng.Width
+        .ChartArea.Height = rng.Height
+    End With
+
+    ' Export the chart as an image
+    chrt.Export imgPath, "PNG"
+
+    ' Delete the temporary chart
+    chrt.Delete
+End Sub
+Sub CreatePDFWithImages(rng1 As Range, rng2 As Range, pdfPath As String)
+    Dim imgPath1 As String
+    Dim imgPath2 As String
+    Dim WordApp As Word.Application
+    Dim WordDoc As Word.Document
+    Dim shp1 As Word.Shape, shp2 As Word.Shape
+
+    ' Save the ranges as images
+    imgPath1 = Environ$("temp") & "\RangeG10_X55.png"
+    imgPath2 = Environ$("temp") & "\RangeG56_X98.png"
+
+    Call RangeToImage(rng1, imgPath1)
+    Call RangeToImage(rng2, imgPath2)
+
+    ' Create a new Word document
+    Set WordApp = New Word.Application
+    Set WordDoc = WordApp.Documents.Add
+
+    ' Set the page orientation to landscape
+    WordDoc.PageSetup.Orientation = Word.WdOrientation.wdOrientLandscape
+
+    ' Add the images to the document
+    Set shp1 = WordDoc.Shapes.AddPicture(imgPath1, False, True, 0, 0)
+    Set shp2 = WordDoc.Shapes.AddPicture(imgPath2, False, True, 0, shp1.Height)
+
+    ' Save the Word document as a PDF
+    WordDoc.ExportAsFixedFormat pdfPath, Word.WdExportFormat.wdExportFormatPDF
+
+    ' Clean up
+    WordDoc.Close False
+    WordApp.Quit
+End Sub
