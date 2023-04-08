@@ -1,0 +1,11 @@
+ To extract text to the right of ": " in cell B2, you can use the following formula in Excel:
+
+=MID(B2, FIND(": ", B2) + 2, LEN(B2) - FIND(": ", B2) - 1)
+
+This formula uses the MID, FIND, and LEN functions to accomplish the task:
+
+FIND(": ", B2) locates the position of the ": " in the text.
+FIND(": ", B2) + 2 calculates the starting position for the text you want to extract, which is right after the ": ".
+LEN(B2) returns the total length of the text in cell B2.
+LEN(B2) - FIND(": ", B2) - 1 calculates the number of characters to extract from the starting position.
+MID(B2, starting_position, num_characters) extracts the desired text from cell B2 using the starting position and number of characters calculated in the previous steps.
