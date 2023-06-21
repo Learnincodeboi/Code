@@ -1,0 +1,44 @@
+Sub Email_Print_Area()
+
+    Dim rng As Range
+    Dim OutApp As Object
+    Dim OutMail As Object
+
+    ' Define the range you want to send
+    Set rng = Nothing
+    On Error Resume Next
+    ' Only send the visible cells in the print area
+    Set rng = ActiveSheet.PageSetup.PrintArea
+    On Error GoTo 0
+
+    If rng Is Nothing Then
+        MsgBox "The Print Area has not been defined or is not valid.", vbOKOnly + vbExclamation, "Print Area Not Defined"
+        Exit Sub
+    End If
+
+    ' Create a new Microsoft Outlook session
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+
+    With OutMail
+        .To = ""  '<< Add the email address here
+        .CC = ""  '<< Optionally, add CC here
+        .BCC = "" '<< Optionally, add BCC here
+        .Subject = "This is the Subject line" '<< Add your subject line here
+        ' Copy the range and create a new workbook to past the data in
+        rng.Copy
+        With .GetInspector.WordEditor
+            .Application.Selection.Start = 0
+            .Application.Selection.End = 0
+            .Application.Selection.PasteAndFormat (wdFormatPlainText)
+        End With
+        ' Send or Display the email
+        .Display  'Or use .Send
+    End With
+
+    ' Clean up
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+    Set rng = Nothing
+
+End Sub
